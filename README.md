@@ -15,7 +15,7 @@ pip install -r requirements.txt
 To check a single package, pass the name of a package to the script as the first argument. Here, I'm using the package Darcy has helpfully provided:
 
 ```
-$ ./npm-manifest-check darcyclarke-manifest-pkg
+$ ./npm-manifest-check.py darcyclarke-manifest-pkg
 Version mismatch for darcyclarke-manifest-pkg!
 Reported version: 2.1.15
 Actual version: 3.0.0
