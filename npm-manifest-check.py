@@ -9,7 +9,7 @@ import json
 
 def parse_manifest(pkg):
     # get and parse the manifest which contains the values reported on the frontend
-    url = 'https://registry.npmjs.com/' + pkg + '/'
+    url = 'https://registry.npmjs.com/{}/'.format(pkg)
     parsed = json.loads(requests.get(url).text)
 
     # extract the interesting bits
@@ -17,25 +17,27 @@ def parse_manifest(pkg):
     latest_manifest = parsed['versions'][latest_ver]
 
     try:
-        dependencies = parsed['versions'][latest_ver]['dependencies']
+        dependencies = latest_manifest['dependencies']
     except KeyError:
         dependencies = None
     try:
-        scripts = parsed['versions'][latest_ver]['scripts']
+        scripts = latest_manifest['scripts']
     except KeyError:
         scripts = None
-    name = parsed['versions'][latest_ver]['name']
+    name = latest_manifest['name']
 
     return latest_ver, dependencies, scripts, name
 
 
 def get_actual_manifest(pkg, ver):
     # get and parse the manifest as it would be installed
-    index_url = 'https://www.npmjs.com/package/' + pkg + '/v/' + ver + '/index'
+    # first, we need to find the package.json delivered with the package:
+    index_url = 'https://www.npmjs.com/package/{}/v/{}/index'.format(pkg, ver)
     index = json.loads(requests.get(index_url).text)
     hexsum = index['files']['/package.json']['hex']
     manifest_url = 'https://www.npmjs.com/package/{}/file/{}'.format(pkg, hexsum)
 
+    # now we can parse it
     manifest = json.loads(requests.get(manifest_url).text)
     version = manifest['version']
     try:
@@ -55,7 +57,6 @@ def main():
     import sys
     mismatch = False
     pkg = sys.argv[1]
-    #manifest = get_registry_manifest(pkg)
     reported_ver, reported_dependencies, reported_scripts, reported_name = parse_manifest(pkg)
     actual_ver, actual_dependencies, actual_scripts, actual_name = get_actual_manifest(pkg, reported_ver)
 
