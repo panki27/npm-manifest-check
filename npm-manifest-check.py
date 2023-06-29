@@ -7,14 +7,10 @@ import json
 # use hex to get *actual* manifest:
 # https://www.npmjs.com/package/darcyclarke-manifest-pkg/file/a1c6250cb3f94bb3487c1bfb673d279642208b5db39a6c052a5c764f0d1abea5
 
-def get_registry_manifest(pkg):
+def parse_manifest(pkg):
+    # get and parse the manifest which contains the values reported on the frontend
     url = 'https://registry.npmjs.com/' + pkg + '/'
-    r = requests.get(url) 
-    return(r.text)
-
-def parse_manifest(manifest):
-    # parse the manifest which contains the values from the frontend
-    parsed = json.loads(manifest)
+    parsed = json.loads(requests.get(url).text)
 
     # extract the interesting bits
     latest_ver = parsed['dist-tags']['latest']
@@ -24,15 +20,16 @@ def parse_manifest(manifest):
     scripts = parsed['versions'][latest_ver]['scripts']
     name = parsed['versions'][latest_ver]['name']
 
-    #print('latest version: {}'.format(latest_ver))
     return latest_ver, dependencies, scripts, name
 
+
 def get_actual_manifest(pkg, ver):
+    # get and parse the manifest as it would be installed
     index_url = 'https://www.npmjs.com/package/' + pkg + '/v/' + ver + '/index'
     index = json.loads(requests.get(index_url).text)
     hexsum = index['files']['/package.json']['hex']
-    #print('hex checksum: {}'.format(hexsum))
     manifest_url = 'https://www.npmjs.com/package/{}/file/{}'.format(pkg, hexsum)
+
     manifest = json.loads(requests.get(manifest_url).text)
     version = manifest['version']
     dependencies = manifest['dependencies']
@@ -46,8 +43,8 @@ def main():
     import sys
     mismatch = False
     pkg = sys.argv[1]
-    manifest = get_registry_manifest(pkg)
-    reported_ver, reported_dependencies, reported_scripts, reported_name = parse_manifest(manifest)
+    #manifest = get_registry_manifest(pkg)
+    reported_ver, reported_dependencies, reported_scripts, reported_name = parse_manifest(pkg)
     actual_ver, actual_dependencies, actual_scripts, actual_name = get_actual_manifest(pkg, reported_ver)
 
     if actual_ver != reported_ver:
@@ -76,6 +73,8 @@ def main():
 
     if not mismatch:
         print('No mismatch detected for {}.'.format(pkg))
+    else:
+        sys.exit(1)
 
 
 if __name__ == '__main__':
