@@ -21,10 +21,11 @@ def parse_manifest(manifest):
     latest_manifest = parsed['versions'][latest_ver]
 
     dependencies = parsed['versions'][latest_ver]['dependencies']
+    scripts = parsed['versions'][latest_ver]['scripts']
 
     # extract number of dependencies
     print('latest version: {}'.format(latest_ver))
-    return latest_ver, dependencies
+    return latest_ver, dependencies, scripts
 
 def get_actual_manifest(pkg, ver):
     index_url = 'https://www.npmjs.com/package/' + pkg + '/v/' + ver + '/index'
@@ -34,7 +35,8 @@ def get_actual_manifest(pkg, ver):
     manifest_url = 'https://www.npmjs.com/package/{}/file/{}'.format(pkg, hexsum)
     manifest = json.loads(requests.get(manifest_url).text)
     dependencies = manifest['dependencies']
-    return dependencies
+    scripts = manifest['scripts']
+    return dependencies, scripts
 
 
  
@@ -42,14 +44,18 @@ def main():
     import sys
     pkg = sys.argv[1]
     manifest = get_registry_manifest(pkg)
-    ver, reported_dependencies = parse_manifest(manifest)
-    actual_dependencies = get_actual_manifest(pkg, ver)
+    ver, reported_dependencies, reported_scripts = parse_manifest(manifest)
+    actual_dependencies, actual_scripts = get_actual_manifest(pkg, ver)
     if actual_dependencies != reported_dependencies:
         print('Dependency mismatch detected for {}!'.format(pkg))
         print('Reported dependencies: {}'.format(reported_dependencies))
         print('Actual dependencies: {}'.format(actual_dependencies))
     else:
         print('No mismatch detected for {}.'.format(pkg))
+    if actual_scripts != reported_scripts:
+        print('Scripts mismatch detected for {}!'.format(pkg))
+        print('Reported scripts: {}'.format(reported_scripts))
+        print('Actual scripts: {}'.format(actual_scripts))
 
 
 if __name__ == '__main__':
