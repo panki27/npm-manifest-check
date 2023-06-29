@@ -2,8 +2,8 @@
 import requests
 import json
 
-# hex checksum = file name
 # https://www.npmjs.com/package/darcyclarke-manifest-pkg/v/2.1.15/index
+# hex checksum = file name
 # use hex to get *actual* manifest:
 # https://www.npmjs.com/package/darcyclarke-manifest-pkg/file/a1c6250cb3f94bb3487c1bfb673d279642208b5db39a6c052a5c764f0d1abea5
 
@@ -16,8 +16,14 @@ def parse_manifest(pkg):
     latest_ver = parsed['dist-tags']['latest']
     latest_manifest = parsed['versions'][latest_ver]
 
-    dependencies = parsed['versions'][latest_ver]['dependencies']
-    scripts = parsed['versions'][latest_ver]['scripts']
+    try:
+        dependencies = parsed['versions'][latest_ver]['dependencies']
+    except KeyError:
+        dependencies = None
+    try:
+        scripts = parsed['versions'][latest_ver]['scripts']
+    except KeyError:
+        scripts = None
     name = parsed['versions'][latest_ver]['name']
 
     return latest_ver, dependencies, scripts, name
@@ -32,8 +38,14 @@ def get_actual_manifest(pkg, ver):
 
     manifest = json.loads(requests.get(manifest_url).text)
     version = manifest['version']
-    dependencies = manifest['dependencies']
-    scripts = manifest['scripts']
+    try:
+        dependencies = manifest['dependencies']
+    except KeyError:
+        dependencies = None
+    try:
+        scripts = manifest['scripts']
+    except KeyError:
+        scripts = None
     name = manifest['name']
 
     return version, dependencies, scripts, name
