@@ -105,7 +105,7 @@ def parse_actual_manifest(pkg, ver):
 
     return Manifest(name, version, dependencies, scripts)
 
-def compare_manifests(pkg, brief=False, color=False, recursive=False):
+def compare_manifests(pkg, brief=False, color=False, recursive=False, __checked_packages=[]):
     mismatch = False
     if pkg.reported_manifest.version != pkg.actual_manifest.version:
         mismatch = True
@@ -178,9 +178,11 @@ def compare_manifests(pkg, brief=False, color=False, recursive=False):
             print(colors.END, end='')
 
     if recursive:
+        __checked_packages.append(pkg.name)
         for package in pkg.actual_manifest.dependencies:
-            print('Recursive: {}'.format(package))
-            mismatch = compare_manifests(Package(package), brief=brief, color=color, recursive=True) or mismatch
+            if package in __checked_packages:
+                continue
+            mismatch = compare_manifests(Package(package), brief=brief, color=color, recursive=True, __checked_packages=__checked_packages) or mismatch
 
     return mismatch
 
