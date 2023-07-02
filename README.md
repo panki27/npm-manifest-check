@@ -24,6 +24,7 @@ positional arguments:
 optional arguments:
   -h, --help   show this help message and exit
   -b, --brief  do not show detailed comparisons of mismatching values
+  -c, --color  colorize the output
 ```
 
 ### Single package

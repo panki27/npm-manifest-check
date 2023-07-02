@@ -25,6 +25,18 @@ class Package:
         self.reported_manifest = parse_manifest(name)
         self.actual_manifest = parse_actual_manifest(name, self.reported_manifest.version)
 
+class colors:
+   PURPLE = '\033[1;35;48m'
+   CYAN = '\033[1;36;48m'
+   BOLD = '\033[1;37;48m'
+   BLUE = '\033[1;34;48m'
+   GREEN = '\033[1;32;48m'
+   YELLOW = '\033[1;33;48m'
+   RED = '\033[1;31;48m'
+   BLACK = '\033[1;30;48m'
+   UNDERLINE = '\033[4;37;48m'
+   END = '\033[1;37;0m'
+
 # https://www.npmjs.com/package/darcyclarke-manifest-pkg/v/2.1.15/index
 # hex checksum = file name
 # use hex to get *actual* manifest:
@@ -93,41 +105,77 @@ def parse_actual_manifest(pkg, ver):
 
     return Manifest(name, version, dependencies, scripts)
 
-def compare_manifests(pkg, brief=False):
+def compare_manifests(pkg, brief=False, color=False):
     mismatch = False
     if pkg.reported_manifest.version != pkg.actual_manifest.version:
         mismatch = True
+        if color:
+            print(colors.RED, end='')
         print('Version mismatch for {}!'.format(pkg.name))
+        if color:
+            print(colors.END, end='')
         if not brief:
+            if color:
+                print(colors.YELLOW, end='')
             print('Reported version: {}'.format(pkg.reported_manifest.version))
             print('Actual version:   {}'.format(pkg.actual_manifest.version))
+            if color:
+                print(colors.END, end='')
 
     if pkg.actual_manifest.dependencies != pkg.reported_manifest.dependencies:
         mismatch = True
+        if color:
+            print(colors.RED, end='')
         print('Dependency mismatch detected for {}!'.format(pkg.name))
+        if color:
+            print(colors.END, end='')
 
         if not brief:
+            if color:
+                print(colors.YELLOW, end='')
             dep_diff = DeepDiff(pkg.reported_manifest.dependencies, pkg.actual_manifest.dependencies, verbose_level=2)
             pprint(dep_diff, indent=2)
+            if color:
+                print(colors.END, end='')
 
     if pkg.actual_manifest.scripts != pkg.reported_manifest.scripts:
         mismatch = True
+        if color:
+            print(colors.RED, end='')
         print('Scripts mismatch detected for {}!'.format(pkg.name))
+        if color:
+            print(colors.END, end='')
 
         if not brief:
+            if color:
+                print(colors.YELLOW, end='')
             scripts_diff = DeepDiff(pkg.reported_manifest.scripts, pkg.actual_manifest.scripts, verbose_level=2)
             pprint(scripts_diff, indent=2)
+            if color:
+                print(colors.END, end='')
 
     if pkg.actual_manifest.name != pkg.reported_manifest.name:
         mismatch = True
+        if color:
+            print(colors.RED, end='')
         print('Name mismatch detected for {}!'.format(pkg.name))
+        if color:
+            print(colors.END, end='')
 
         if not brief:
+            if color:
+                print(colors.YELLOW, end='')
             print('Reported name: {}'.format(pkg.reported_manifest.name))
             print('Actual name:   {}'.format(pkg.actual_manifest.name))
+            if color:
+                print(colors.END, end='')
 
     if not mismatch:
+        if color:
+            print(colors.GREEN, end='')
         print('No mismatch detected for {}.'.format(pkg.name))
+        if color:
+            print(colors.END, end='')
 
     return mismatch
 
@@ -138,11 +186,12 @@ def main():
 
     parser = argparse.ArgumentParser(prog='npm-manifest-check', description='Check NPM packages for manifest mismatches')
     parser.add_argument('-b', '--brief', action='store_true', help='do not show detailed comparisons of mismatching values')
+    parser.add_argument('-c', '--color', action='store_true', help='colorize the output')
     parser.add_argument('package', type=str, help='name of the NPM package')
     
     args = parser.parse_args()
     package = Package(args.package)
-    mismatching = compare_manifests(package, brief=args.brief)
+    mismatching = compare_manifests(package, brief=args.brief, color=args.color)
     if mismatching:
         sys.exit(1)
 
