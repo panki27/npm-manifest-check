@@ -10,6 +10,22 @@ Install the requirements first:
 pip install -r requirements.txt
 ```
 
+Check the help:
+
+```
+./npm-manifest-check.py -h
+usage: npm-manifest-check [-h] [-b] package
+
+Check NPM packages for manifest mismatches
+
+positional arguments:
+  package      name of the NPM package
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -b, --brief  do not show detailed comparisons of mismatching values
+```
+
 ### Single package
 
 To check a single package, pass the name of a package to the script as the first argument. Here, I'm using the package Darcy has helpfully provided:
