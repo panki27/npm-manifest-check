@@ -94,6 +94,7 @@ def parse_actual_manifest(pkg, ver):
     return Manifest(name, version, dependencies, scripts)
 
 def compare_manifests(pkg):
+    mismatch = False
     if pkg.reported_manifest.version != pkg.actual_manifest.version:
         mismatch = True
         print('Version mismatch for {}!'.format(pkg.name))
@@ -119,6 +120,9 @@ def compare_manifests(pkg):
         print('Name mismatch detected for {}!'.format(pkg.name))
         print('Reported name: {}'.format(pkg.reported_manifest.name))
         print('Actual name:   {}'.format(pkg.actual_manifest.name))
+
+    if not mismatch:
+        print('No mismatch detected for {}.'.format(pkg.name))
 
     return mismatch
 

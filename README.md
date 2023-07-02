@@ -20,12 +20,11 @@ Version mismatch for darcyclarke-manifest-pkg!
 Reported version: 2.1.15
 Actual version: 3.0.0
 Dependency mismatch detected for darcyclarke-manifest-pkg!
-Reported dependencies: {}
-Actual dependencies: {'sleepover': '*'}
+{'dictionary_item_added': {"root['sleepover']": '*'}}
 Scripts mismatch detected for darcyclarke-manifest-pkg!
-Reported scripts: {}
-Actual scripts: {'install': 'touch ./bad-pkg-write && echo "bad pkg exec!"\n'}
-Name mismatch detected for darcyclarke-manifest-pkg!
+{ 'dictionary_item_added': { "root['install']": 'touch ./bad-pkg-write && echo '
+                                                '"bad pkg exec!"\n'}}
+Name mismatch detected for Package(name='darcyclarke-manifest-pkg', reported_manifest=Manifest(name='darcyclarke-manifest-pkg', version='2.1.15', dependencies={}, scripts={}), actual_manifest=Manifest(name='express', version='3.0.0', dependencies={'sleepover': '*'}, scripts={'install': 'touch ./bad-pkg-write && echo "bad pkg exec!"\n'}))!
 Reported name: darcyclarke-manifest-pkg
 Actual name: express
 ```
