@@ -1,6 +1,6 @@
 # npm manifest confusion checker
 
-A `python` script to check `npm` packages for manifest mismatches, [as reported by Darcy Clarke.](https://blog.vlt.sh/blog/the-massive-hole-in-the-npm-ecosystem)
+A `python` script to check `npm` packages for manifest mismatches, [as reported by Darcy Clarke.](https://blog.vlt.sh/blog/the-massive-hole-in-the-npm-ecosystem) Can also check all the dependencies of a package recursively.
 
 ## Usage
 
