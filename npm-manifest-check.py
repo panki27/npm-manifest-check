@@ -58,7 +58,7 @@ def parse_manifest(pkg):
     try:
         dependencies = latest_manifest['dependencies']
     except KeyError:
-        dependencies = None
+        dependencies = json.loads('{}')
     try:
         scripts = latest_manifest['scripts']
     except KeyError:
@@ -96,7 +96,7 @@ def parse_actual_manifest(pkg, ver):
     try:
         dependencies = manifest['dependencies']
     except KeyError:
-        dependencies = None
+        dependencies = json.loads('{}')
     try:
         scripts = manifest['scripts']
     except KeyError:
@@ -105,7 +105,7 @@ def parse_actual_manifest(pkg, ver):
 
     return Manifest(name, version, dependencies, scripts)
 
-def compare_manifests(pkg, brief=False, color=False):
+def compare_manifests(pkg, brief=False, color=False, recursive=False):
     mismatch = False
     if pkg.reported_manifest.version != pkg.actual_manifest.version:
         mismatch = True
@@ -177,6 +177,11 @@ def compare_manifests(pkg, brief=False, color=False):
         if color:
             print(colors.END, end='')
 
+    if recursive:
+        for package in pkg.actual_manifest.dependencies:
+            print('Recursive: {}'.format(package))
+            mismatch = compare_manifests(Package(package), brief=brief, color=color, recursive=True) or mismatch
+
     return mismatch
 
 
@@ -185,13 +190,14 @@ def main():
     import sys
 
     parser = argparse.ArgumentParser(prog='npm-manifest-check', description='Check NPM packages for manifest mismatches')
+    parser.add_argument('-r', '--recursive', action='store_true', help='recursively check all dependencies for mismatches')
     parser.add_argument('-b', '--brief', action='store_true', help='do not show detailed comparisons of mismatching values')
     parser.add_argument('-c', '--color', action='store_true', help='colorize the output')
     parser.add_argument('package', type=str, help='name of the NPM package')
     
     args = parser.parse_args()
     package = Package(args.package)
-    mismatching = compare_manifests(package, brief=args.brief, color=args.color)
+    mismatching = compare_manifests(package, brief=args.brief, color=args.color, recursive=args.recursive)
     if mismatching:
         sys.exit(1)
 
