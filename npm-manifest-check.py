@@ -2,6 +2,8 @@
 import requests
 import json
 import time
+from pprint import pprint
+from deepdiff import DeepDiff
 
 # https://www.npmjs.com/package/darcyclarke-manifest-pkg/v/2.1.15/index
 # hex checksum = file name
@@ -72,7 +74,6 @@ def get_actual_manifest(pkg, ver):
 
     return version, dependencies, scripts, name
 
-
 def main():
     import sys
     mismatch = False
@@ -91,15 +92,17 @@ def main():
 
     if actual_dependencies != reported_dependencies:
         mismatch = True
+        dep_diff = DeepDiff(reported_dependencies, actual_dependencies, verbose_level=2)
+
         print('Dependency mismatch detected for {}!'.format(pkg))
-        print('Reported dependencies: {}'.format(reported_dependencies))
-        print('Actual dependencies: {}'.format(actual_dependencies))
+        pprint(dep_diff, indent=2)
 
     if actual_scripts != reported_scripts:
         mismatch = True
+        scripts_diff = DeepDiff(reported_scripts, actual_scripts, verbose_level=2)
+
         print('Scripts mismatch detected for {}!'.format(pkg))
-        print('Reported scripts: {}'.format(reported_scripts))
-        print('Actual scripts: {}'.format(actual_scripts))
+        pprint(scripts_diff, indent=2)
 
     if actual_name != reported_name:
         mismatch = True
