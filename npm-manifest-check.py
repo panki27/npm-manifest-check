@@ -46,7 +46,7 @@ def get_actual_manifest(pkg, ver):
             break
         except json.decoder.JSONDecodeError:
             print('Failed to get index from webservice, retrying...')
-            time.sleep(1)
+            time.sleep(5)
 
     hexsum = index['files']['/package.json']['hex']
     manifest_url = 'https://www.npmjs.com/package/{}/file/{}'.format(pkg, hexsum)
@@ -58,7 +58,7 @@ def get_actual_manifest(pkg, ver):
             break
         except json.decoder.JSONDecodeError:
             print('Failed getting manifest JSON from webserver, retrying...')
-            time.sleep(1)
+            time.sleep(5)
 
     # now we can parse it
     version = manifest['version']
