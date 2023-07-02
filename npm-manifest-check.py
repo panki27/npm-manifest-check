@@ -93,33 +93,38 @@ def parse_actual_manifest(pkg, ver):
 
     return Manifest(name, version, dependencies, scripts)
 
-def compare_manifests(pkg):
+def compare_manifests(pkg, brief=False):
     mismatch = False
     if pkg.reported_manifest.version != pkg.actual_manifest.version:
         mismatch = True
         print('Version mismatch for {}!'.format(pkg.name))
-        print('Reported version: {}'.format(pkg.reported_manifest.version))
-        print('Actual version:   {}'.format(pkg.actual_manifest.version))
+        if not brief:
+            print('Reported version: {}'.format(pkg.reported_manifest.version))
+            print('Actual version:   {}'.format(pkg.actual_manifest.version))
 
     if pkg.actual_manifest.dependencies != pkg.reported_manifest.dependencies:
         mismatch = True
-        dep_diff = DeepDiff(pkg.reported_manifest.dependencies, pkg.actual_manifest.dependencies, verbose_level=2)
-
         print('Dependency mismatch detected for {}!'.format(pkg.name))
-        pprint(dep_diff, indent=2)
+
+        if not brief:
+            dep_diff = DeepDiff(pkg.reported_manifest.dependencies, pkg.actual_manifest.dependencies, verbose_level=2)
+            pprint(dep_diff, indent=2)
 
     if pkg.actual_manifest.scripts != pkg.reported_manifest.scripts:
         mismatch = True
-        scripts_diff = DeepDiff(pkg.reported_manifest.scripts, pkg.actual_manifest.scripts, verbose_level=2)
-
         print('Scripts mismatch detected for {}!'.format(pkg.name))
-        pprint(scripts_diff, indent=2)
+
+        if not brief:
+            scripts_diff = DeepDiff(pkg.reported_manifest.scripts, pkg.actual_manifest.scripts, verbose_level=2)
+            pprint(scripts_diff, indent=2)
 
     if pkg.actual_manifest.name != pkg.reported_manifest.name:
         mismatch = True
         print('Name mismatch detected for {}!'.format(pkg.name))
-        print('Reported name: {}'.format(pkg.reported_manifest.name))
-        print('Actual name:   {}'.format(pkg.actual_manifest.name))
+
+        if not brief:
+            print('Reported name: {}'.format(pkg.reported_manifest.name))
+            print('Actual name:   {}'.format(pkg.actual_manifest.name))
 
     if not mismatch:
         print('No mismatch detected for {}.'.format(pkg.name))
@@ -128,11 +133,16 @@ def compare_manifests(pkg):
 
 
 def main():
+    import argparse
     import sys
 
-    package_name = sys.argv[1]
-    package = Package(package_name)
-    mismatching = compare_manifests(package)
+    parser = argparse.ArgumentParser(prog='npm-manifest-check', description='Check NPM packages for manifest mismatches')
+    parser.add_argument('-b', '--brief', action='store_true', help='do not show detailed comparisons of mismatching values')
+    parser.add_argument('package', type=str, help='name of the NPM package')
+    
+    args = parser.parse_args()
+    package = Package(args.package)
+    mismatching = compare_manifests(package, brief=args.brief)
     if mismatching:
         sys.exit(1)
 
