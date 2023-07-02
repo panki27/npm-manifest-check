@@ -23,6 +23,7 @@ positional arguments:
 
 optional arguments:
   -h, --help   show this help message and exit
+  -r, --recursive  recursively check all dependencies for mismatches
   -b, --brief  do not show detailed comparisons of mismatching values
   -c, --color  colorize the output
 ```

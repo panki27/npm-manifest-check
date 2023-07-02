@@ -58,11 +58,11 @@ def parse_manifest(pkg):
     try:
         dependencies = latest_manifest['dependencies']
     except KeyError:
-        dependencies = json.loads('{}')
+        dependencies = {}
     try:
         scripts = latest_manifest['scripts']
     except KeyError:
-        scripts = json.loads('{}')
+        scripts = {}
     name = latest_manifest['name']
     
     return Manifest(name, latest_ver, dependencies, scripts)
@@ -96,11 +96,11 @@ def parse_actual_manifest(pkg, ver):
     try:
         dependencies = manifest['dependencies']
     except KeyError:
-        dependencies = json.loads('{}')
+        dependencies = {}
     try:
         scripts = manifest['scripts']
     except KeyError:
-        scripts = json.loads('{}')
+        scripts = {}
     name = manifest['name']
 
     return Manifest(name, version, dependencies, scripts)
