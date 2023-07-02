@@ -5,6 +5,26 @@ import time
 from pprint import pprint
 from deepdiff import DeepDiff
 
+from dataclasses import dataclass
+
+@dataclass
+class Manifest:
+    name: str
+    version: str
+    dependencies: dict
+    scripts: dict
+
+@dataclass
+class Package:
+    name: str
+    reported_manifest: Manifest
+    actual_manifest: Manifest
+
+    def __init__(self, name: str):
+        self.name = name
+        self.reported_manifest = parse_manifest(name)
+        self.actual_manifest = parse_actual_manifest(name, self.reported_manifest.version)
+
 # https://www.npmjs.com/package/darcyclarke-manifest-pkg/v/2.1.15/index
 # hex checksum = file name
 # use hex to get *actual* manifest:
@@ -32,11 +52,10 @@ def parse_manifest(pkg):
     except KeyError:
         scripts = json.loads('{}')
     name = latest_manifest['name']
+    
+    return Manifest(name, latest_ver, dependencies, scripts)
 
-    return latest_ver, dependencies, scripts, name
-
-
-def get_actual_manifest(pkg, ver):
+def parse_actual_manifest(pkg, ver):
     # get and parse the manifest as it would be installed
     # first, we need to find the package.json delivered with the package:
     index_url = 'https://www.npmjs.com/package/{}/v/{}/index'.format(pkg, ver)
@@ -72,49 +91,46 @@ def get_actual_manifest(pkg, ver):
         scripts = json.loads('{}')
     name = manifest['name']
 
-    return version, dependencies, scripts, name
+    return Manifest(name, version, dependencies, scripts)
+
+def compare_manifests(pkg):
+    if pkg.reported_manifest.version != pkg.actual_manifest.version:
+        mismatch = True
+        print('Version mismatch for {}!'.format(pkg.name))
+        print('Reported version: {}'.format(pkg.reported_manifest.version))
+        print('Actual version:   {}'.format(pkg.actual_manifest.version))
+
+    if pkg.actual_manifest.dependencies != pkg.reported_manifest.dependencies:
+        mismatch = True
+        dep_diff = DeepDiff(pkg.reported_manifest.dependencies, pkg.actual_manifest.dependencies, verbose_level=2)
+
+        print('Dependency mismatch detected for {}!'.format(pkg.name))
+        pprint(dep_diff, indent=2)
+
+    if pkg.actual_manifest.scripts != pkg.reported_manifest.scripts:
+        mismatch = True
+        scripts_diff = DeepDiff(pkg.reported_manifest.scripts, pkg.actual_manifest.scripts, verbose_level=2)
+
+        print('Scripts mismatch detected for {}!'.format(pkg.name))
+        pprint(scripts_diff, indent=2)
+
+    if pkg.actual_manifest.name != pkg.reported_manifest.name:
+        mismatch = True
+        print('Name mismatch detected for {}!'.format(pkg.name))
+        print('Reported name: {}'.format(pkg.reported_manifest.name))
+        print('Actual name:   {}'.format(pkg.actual_manifest.name))
+
+    return mismatch
+
 
 def main():
     import sys
-    mismatch = False
-    pkg = sys.argv[1]
-    reported_ver, reported_dependencies, reported_scripts, reported_name = parse_manifest(pkg)
 
-    if reported_ver == None:
-        sys.exit(2)
-    actual_ver, actual_dependencies, actual_scripts, actual_name = get_actual_manifest(pkg, reported_ver)
-
-    if actual_ver != reported_ver:
-        mismatch = True
-        print('Version mismatch for {}!'.format(pkg))
-        print('Reported version: {}'.format(reported_ver))
-        print('Actual version: {}'.format(actual_ver))
-
-    if actual_dependencies != reported_dependencies:
-        mismatch = True
-        dep_diff = DeepDiff(reported_dependencies, actual_dependencies, verbose_level=2)
-
-        print('Dependency mismatch detected for {}!'.format(pkg))
-        pprint(dep_diff, indent=2)
-
-    if actual_scripts != reported_scripts:
-        mismatch = True
-        scripts_diff = DeepDiff(reported_scripts, actual_scripts, verbose_level=2)
-
-        print('Scripts mismatch detected for {}!'.format(pkg))
-        pprint(scripts_diff, indent=2)
-
-    if actual_name != reported_name:
-        mismatch = True
-        print('Name mismatch detected for {}!'.format(pkg))
-        print('Reported name: {}'.format(reported_name))
-        print('Actual name: {}'.format(actual_name))
-
-    if not mismatch:
-        print('No mismatch detected for {}.'.format(pkg))
-    else:
+    package_name = sys.argv[1]
+    package = Package(package_name)
+    mismatching = compare_manifests(package)
+    if mismatching:
         sys.exit(1)
-
 
 if __name__ == '__main__':
     main()
