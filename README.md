@@ -88,17 +88,18 @@ npm-manifest-check:
   stage: security
   image: python:3-alpine
   before_script:
+    - apk add --update git nodejs npm && rm -rf /var/cache/apk/*
     - git clone https://github.com/panki27/npm-manifest-check.git npm-manifest-check
     - cd npm-manifest-check
     - pip install -r requirements.txt
     - cd -
   script:
-    - npm ls --depth=0 --parseable | awk '{gsub(/\/.*\//,"",$1); print}'| sort -u  > packages.list
-    - sh ./npm-manifest-check/check_and_output_packages.sh
-    - ls
+    - npm ls --silent --depth=0 --parseable | awk '{gsub(/\/.*\//,"",$1); print}'| sort -u  > npm-manifest-check/packages.list || true
+    - cd npm-manifest-check
+    - sh ./check_and_output_packages.sh --verbose
   artifacts:
-    reports:
-      npmmanifestcheck: npm-manifest-check.json
+    paths:
+      - npm-manifest-check/npm-manifest-check-results.json
     expire_in: 1 week
   dependencies: []
   rules:
