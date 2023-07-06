@@ -82,17 +82,23 @@ Usage: check_and_output_packages.sh [<name>] [--format=json|html|text] [--verbos
 ```
 
 ### CI
-To use the package in a CI pipeline, inspiration can be found in the following Gitlab pipeline snippet
+To use the package in a CI pipeline, inspiration can be found in the following Gitlab pipeline snippet.
+What is seen here is a very slim python image where yarn is used for installing and npm for listing the packages.
+Adter that the json artifact is uploaded.
 ```yaml
 npm-manifest-check:
   stage: security
+  tags:
+    - $TAG_RUNNER
   image: python:3-alpine
   before_script:
     - apk add --update git nodejs npm && rm -rf /var/cache/apk/*
     - git clone https://github.com/panki27/npm-manifest-check.git npm-manifest-check
     - cd npm-manifest-check
     - pip install -r requirements.txt
+    - npm install --global yarn
     - cd -
+    - yarn
   script:
     - npm ls --silent --depth=0 --parseable | awk '{gsub(/\/.*\//,"",$1); print}'| sort -u  > npm-manifest-check/packages.list || true
     - cd npm-manifest-check
