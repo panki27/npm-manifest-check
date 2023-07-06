@@ -77,7 +77,7 @@ It is also possible to change the output to a basic HTML or plain text.
 ```
 ./check_and_output_packages.sh -h
 ***
-Usage: check_and_output_packages.sh [<name>] [--format=json|html|text] [--verbose]
+Usage: check_and_output_packages.sh [<name>] [--verbose]
 ***
 ```
 
