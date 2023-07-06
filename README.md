@@ -63,3 +63,58 @@ No mismatch detected for color.
 ```
 
 It will only report packages that have a mismatch.
+
+You can use the following command to create a packages.list based on your lockfile.
+```bash
+npm ls --depth=0 --parseable | awk '{gsub(/\/.*\//,"",$1); print}'| sort -u  > packages.list
+```
+You could alter the `depth=0` variable to scan even deeper dependencies.
+
+#### Output
+You can use the `check_and_output_packages.sh` to output the results.
+The default path will be _npm-manifest-check-results.json_ but can be changed by adding a name after the script.
+It is also possible to change the output to a basic HTML or plain text.
+```
+./check_and_output_packages.sh -h
+***
+Usage: check_and_output_packages.sh [<name>] [--verbose]
+***
+```
+
+### CI
+To use the package in a CI pipeline, inspiration can be found in the following Gitlab pipeline snippet.
+What is seen here is a very slim python image where yarn is used for installing and npm for listing the packages.
+Adter that the json artifact is uploaded.
+```yaml
+npm-manifest-check:
+  stage: security
+  tags:
+    - $TAG_RUNNER
+  image: python:3-alpine
+  before_script:
+    - apk add --update git nodejs npm && rm -rf /var/cache/apk/*
+    - git clone https://github.com/panki27/npm-manifest-check.git npm-manifest-check
+    - cd npm-manifest-check
+    - pip install -r requirements.txt
+    - npm install --global yarn
+    - cd -
+    - yarn
+  script:
+    - npm ls --silent --depth=0 --parseable | awk '{gsub(/\/.*\//,"",$1); print}'| sort -u  > npm-manifest-check/packages.list || true
+    - cd npm-manifest-check
+    - sh ./check_and_output_packages.sh --verbose
+  artifacts:
+    paths:
+      - npm-manifest-check/npm-manifest-check-results-errors.txt
+      - npm-manifest-check/npm-manifest-check-results.txt
+      - npm-manifest-check/npm-manifest-check-results.html
+      - npm-manifest-check/npm-manifest-check-results.json
+    expire_in: 1 week
+  dependencies: []
+  rules:
+    - if: '$NPM_MANIFEST_CHECK_DISABLED'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      exists:
+        - '**/package.json'
+```
