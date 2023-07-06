@@ -1,11 +1,4 @@
 #!/bin/sh
-pushd () {
-    command pushd "$@" > /dev/null
-}
-
-popd () {
-    command popd "$@" > /dev/null
-}
 
 VERBOSE=0
 FORMAT=json
@@ -43,10 +36,7 @@ if [ $FORMAT == "html" ]; then
 fi
 
 while IFS= read -r pkg; do
-
-  pushd "$(dirname "$0")"
   PKG_RESULT="$(python3 npm-manifest-check.py "$pkg" --brief)";
-  popd
 
   if [ $VERBOSE == 1 ]; then
     echo "${PKG_RESULT}"
