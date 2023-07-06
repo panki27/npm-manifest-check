@@ -54,7 +54,11 @@ while IFS= read -r pkg; do
 
   case $FORMAT in
     text)
-      RESULTS="${RESULTS}${pkg}: ${PKG_RESULT}"$'\n\r'
+      CONCLUSION=" (ERROR)"
+      case $PKG_RESULT in
+        "No mismatch detected for"*) CONCLUSION="";;
+      esac
+      RESULTS="${RESULTS}${pkg}${CONCLUSION}: ${PKG_RESULT}"$'\n\r'
     ;;
     html)
       CLASSNAME=bad
@@ -66,12 +70,18 @@ while IFS= read -r pkg; do
 
     json)
       case $PKG_RESULT in
-          "No mismatch detected for"*) RESULTS="${RESULTS}{\"pkg\":\"${pkg}\",\"output\":\"${PKG_RESULT}\"},";;
+          "No mismatch detected for"*) RESULTS="${RESULTS}{\"success\":true,\"pkg\":\"${pkg}\",\"output\":\"${PKG_RESULT}\"},";;
           *)
-            RESULTS="${RESULTS}{\"pkg\":\"${pkg}\",\"output\":["
-            while IFS='!' read -ra LINE; do
+            RESULTS="${RESULTS}{\"success\":false,\"pkg\":\"${pkg}\",\"output\":["
+
+            oIFS="$IFS"; IFS='!'
+            set -f
+            LINES=($PKG_RESULT)
+            IFS="$oIFS"
+            for LINE in "${LINES[@]}"
+            do
               RESULTS="${RESULTS}\"${LINE}\","
-            done <<< "$PKG_RESULT"
+            done
             RESULTS="${RESULTS%,}]},"
           ;;
         esac
