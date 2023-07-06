@@ -77,6 +77,34 @@ It is also possible to change the output to a basic HTML or plain text.
 ```
 ./check_and_output_packages.sh -h
 ***
-Usage: check_and_output_packages.sh [<name>] [--format=json|html|text]
+Usage: check_and_output_packages.sh [<name>] [--format=json|html|text] [--verbose]
 ***
+```
+
+### CI
+To use the package in a CI pipeline, inspiration can be found in the following Gitlab pipeline snippet
+```yaml
+npm-manifest-check:
+  stage: security
+  image: python:3-alpine
+  before_script:
+    - git clone https://github.com/panki27/npm-manifest-check.git npm-manifest-check
+    - cd npm-manifest-check
+    - pip install -r requirements.txt
+    - cd -
+  script:
+    - npm ls --depth=0 --parseable | awk '{gsub(/\/.*\//,"",$1); print}'| sort -u  > packages.list
+    - sh ./npm-manifest-check/check_and_output_packages.sh
+    - ls
+  artifacts:
+    reports:
+      npmmanifestcheck: npm-manifest-check.json
+    expire_in: 1 week
+  dependencies: []
+  rules:
+    - if: '$NPM_MANIFEST_CHECK_DISABLED'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      exists:
+        - '**/package.json'
 ```
