@@ -105,6 +105,9 @@ npm-manifest-check:
     - sh ./check_and_output_packages.sh --verbose
   artifacts:
     paths:
+      - npm-manifest-check/npm-manifest-check-results-errors.txt
+      - npm-manifest-check/npm-manifest-check-results.txt
+      - npm-manifest-check/npm-manifest-check-results.html
       - npm-manifest-check/npm-manifest-check-results.json
     expire_in: 1 week
   dependencies: []
