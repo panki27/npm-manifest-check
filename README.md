@@ -63,3 +63,20 @@ No mismatch detected for color.
 ```
 
 It will only report packages that have a mismatch.
+
+You can use the following command to create a packages.list based on your lockfile.
+```bash
+npm ls --depth=0 --parseable | awk '{gsub(/\/.*\//,"",$1); print}'| sort -u  > packages.list
+```
+You could alter the `depth=0` variable to scan even deeper dependencies.
+
+#### Output
+You can use the `check_and_output_packages.sh` to output the results.
+The default path will be _npm-manifest-check-results.json_ but can be changed by adding a name after the script.
+It is also possible to change the output to a basic HTML or plain text.
+```
+./check_and_output_packages.sh -h
+***
+Usage: check_and_output_packages.sh [<name>] [--format=json|html|text]
+***
+```
