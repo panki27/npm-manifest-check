@@ -74,11 +74,11 @@ while IFS= read -r pkg; do
           *)
             RESULTS="${RESULTS}{\"success\":false,\"pkg\":\"${pkg}\",\"output\":["
 
-            oIFS="$IFS"; IFS='!'
-            set -f
-            LINES=($PKG_RESULT)
+            oIFS="$IFS"; IFS='!' # split on .
+            set -o noglob     # disable glob
+            set -- $PKG_RESULT"" # split+glob with glob disable
             IFS="$oIFS"
-            for LINE in "${LINES[@]}"
+            for LINE in "${$[@]}"
             do
               RESULTS="${RESULTS}\"${LINE}\","
             done
