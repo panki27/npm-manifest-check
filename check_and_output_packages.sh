@@ -36,6 +36,9 @@ if [ $FORMAT == "html" ]; then
 fi
 
 while IFS= read -r pkg; do
+  if [ $VERBOSE == 1 ]; then
+    echo "Running for ${pkg}"
+  fi
   PKG_RESULT="$(python3 npm-manifest-check.py "$pkg" --brief)";
 
   if [ $VERBOSE == 1 ]; then
@@ -46,21 +49,21 @@ while IFS= read -r pkg; do
     text)
       CONCLUSION=" (ERROR)"
       case $PKG_RESULT in
-        "No mismatch detected for"*) CONCLUSION="";;
+        *"No mismatch detected for"*) CONCLUSION="";;
       esac
       RESULTS="${RESULTS}${pkg}${CONCLUSION}: ${PKG_RESULT}"$'\n\r'
     ;;
     html)
       CLASSNAME=bad
       case $PKG_RESULT in
-        "No mismatch detected for"*) CLASSNAME=good;;
+        *"No mismatch detected for"*) CLASSNAME=good;;
       esac
       RESULTS="${RESULTS}<tr class=\"${CLASSNAME}\"><td>${pkg}</td><td>${PKG_RESULT//\!/!<br>}</td></tr>"
     ;;
 
     json)
       case $PKG_RESULT in
-          "No mismatch detected for"*) RESULTS="${RESULTS}{\"success\":true,\"pkg\":\"${pkg}\",\"output\":\"${PKG_RESULT}\"},";;
+          *"No mismatch detected for"*) RESULTS="${RESULTS}{\"success\":true,\"pkg\":\"${pkg}\",\"output\":\"${PKG_RESULT}\"},";;
           *)
             RESULTS="${RESULTS}{\"success\":false,\"pkg\":\"${pkg}\",\"output\":["
 
@@ -68,7 +71,7 @@ while IFS= read -r pkg; do
             set -o noglob     # disable glob
             set -- $PKG_RESULT"" # split+glob with glob disable
             IFS="$oIFS"
-            for LINE in "${$[@]}"
+            for LINE in "$@"
             do
               RESULTS="${RESULTS}\"${LINE}\","
             done
