@@ -2,7 +2,7 @@
 
 VERBOSE=0
 FORMAT=json
-OUTPUT=npm-manifest-check-result
+OUTPUT=npm-manifest-check-results
 for arg in $@
 do
   case $arg in
